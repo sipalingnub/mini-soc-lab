@@ -6,36 +6,28 @@ Pastikan Docker dan Docker Compose sudah terinstal.
 ```bash
 # 1. Clone repository resmi Wazuh Docker
 git clone [https://github.com/wazuh/wazuh-docker.git](https://github.com/wazuh/wazuh-docker.git)
+cd wazuh-docker
 
-# 2. Masuk ke direktori single-node
-cd wazuh-docker/single-node
+# 2. PIN KE VERSI STABIL (4.10.x atau 4.14.x)
+# Ini penting agar tidak terjebak di versi 5.x yang belum stabil
+git checkout v4.10.1
 
-# 3. Jalankan container
-docker-compose up -d
+# 3. Masuk ke direktori single-node
+cd single-node
 
----
+# 4. Generate Sertifikat (Wajib untuk v4 ke atas)
+docker compose -f generate-indexer-certs.yml run --rm generator
 
-### 3. Folder `target-machine`
-Ini buat *script* instalasi agent dan SSH di komputer korban (VM 2).
-* Bikin file: `install-agent.sh`
-* **Isi file:**
+# 5. Jalankan container
+docker compose up -d
+```
+
+#  File `target-machine/install-agent.sh`
+Pastikan agent yang diinstal di komputer korban juga merujuk ke versi 4.x agar sinkron dengan servernya.
+
+**Di bagian ini (dalam file tersebut):**
 ```bash
-#!/bin/bash
-# Script dijalankan di VM 2 (Victim)
-
-echo "[*] Menginstall OpenSSH & Fail2Ban..."
-sudo apt update && sudo apt install openssh-server fail2ban -y
-
-echo "[*] Mendownload Wazuh Agent..."
-curl -sO https://packages.wazuh.com/4.x/wazuh-agent.sh
-
-# PENTING: Ganti <IP_VM_1> dengan IP Address dari VM 1 (Wazuh Server)
-echo "[*] Menginstall Wazuh Agent..."
-sudo bash wazuh-agent.sh -a WAZUH_MANAGER="<IP_VM_1>"
-
-echo "[*] Menjalankan layanan Wazuh Agent..."
-sudo systemctl daemon-reload
-sudo systemctl enable wazuh-agent
-sudo systemctl start wazuh-agent
-
-echo "[+] Selesai! Cek dashboard Wazuh di VM 1 untuk memastikan agent terhubung."
+# Ganti baris download agent dengan versi spesifik jika ingin lebih aman:
+curl -sO https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.10.1-1_amd64.deb
+sudo WAZUH_MANAGER='IP_VM1' dpkg -i wazuh-agent_4.10.1-1_amd64.deb
+```
